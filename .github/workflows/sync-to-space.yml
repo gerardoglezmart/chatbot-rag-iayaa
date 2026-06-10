@@ -11,12 +11,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
           lfs: true
 
-      - name: Push to Hugging Face Space
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Upload to Hugging Face Space
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           HF_SPACE_ID: ${{ vars.HF_SPACE_ID }}
         run: |
-          git push --force "https://oauth2:${HF_TOKEN}@huggingface.co/spaces/${HF_SPACE_ID}" HEAD:main
+          pip install -q huggingface_hub
+          python - <<'EOF'
+          import os
+          from huggingface_hub import HfApi
+
+          api = HfApi(token=os.environ["HF_TOKEN"])
+          api.upload_folder(
+              folder_path=".",
+              repo_id=os.environ["HF_SPACE_ID"],
+              repo_type="space",
+              commit_message="Sync desde GitHub Actions",
+              ignore_patterns=[".git*", ".github*", "*.ipynb", "__pycache__*"],
+          )
+          print("Space sincronizado")
+          EOF
