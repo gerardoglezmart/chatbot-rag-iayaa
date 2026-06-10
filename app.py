@@ -22,11 +22,7 @@ BACKEND_CHOICES = {
     "Extractivo local (sin LLM)": "extractivo",
 }
 
-# Con additional_inputs, cada ejemplo debe ser [mensaje, dropdown, api_key]
-EJEMPLOS = [
-    [item["pregunta"], "Automático (primero disponible)", ""]
-    for item in rag_core.BATERIA_PREGUNTAS
-]
+EJEMPLOS = [[item["pregunta"]] for item in rag_core.BATERIA_PREGUNTAS]
 
 print("Construyendo índice semántico del corpus...")
 rag_core.build_index()
@@ -136,31 +132,56 @@ def responder_chat(mensaje: str, historial, backend_label: str, api_key_usuario:
     return resultado["respuesta"] + pie
 
 
-demo = gr.ChatInterface(
-    fn=responder_chat,
-    title="🤖 Chatbot académico IAyAA — RAG + LLM",
-    description=(
+def _guardar_clave(clave: str):
+    clave = (clave or "").strip()
+    if not clave:
+        return "", "🔓 Sin clave guardada — se usa el modelo por defecto del servidor."
+    proveedor = "Claude Opus 4.8 (Anthropic)" if clave.startswith("sk-ant-") else "gpt-5-mini (OpenAI)"
+    return clave, f"🔐 Clave guardada para **{proveedor}** (solo en esta sesión; se borra al recargar)."
+
+
+def _borrar_clave():
+    return "", "", "🔓 Clave borrada — se usa el modelo por defecto del servidor."
+
+
+with gr.Blocks(title="Chatbot académico IAyAA — RAG + LLM") as demo:
+    gr.Markdown(
+        "# 🤖 Chatbot académico IAyAA — RAG + LLM\n"
         "Pregunta sobre los temas del curso *Inteligencia Artificial y Aprendizaje Automático*: "
         "gradiente descendente, regresión logística, entropía y ganancia de información, "
         "sesgo-varianza, SVM y métricas de clasificación. Las respuestas se generan con base "
         "en el material del curso y citan sus fuentes.\n\n"
-        "Maestría en Inteligencia Artificial Aplicada — Tec de Monterrey — Actividad 5 (Semanas 7 y 8)."
-    ),
-    examples=EJEMPLOS,
-    additional_inputs=[
-        gr.Dropdown(
+        "*Maestría en Inteligencia Artificial Aplicada — Tec de Monterrey — Actividad 5 (Semanas 7 y 8).*"
+    )
+
+    api_key_state = gr.State("")
+
+    with gr.Accordion("⚙️ Configuración del modelo", open=True):
+        backend_dd = gr.Dropdown(
             choices=list(BACKEND_CHOICES.keys()),
             value="Automático (primero disponible)",
             label="Modelo generativo",
-        ),
-        gr.Textbox(
-            value="",
-            type="password",
-            label="API key (opcional — OpenAI o Anthropic)",
-            placeholder="sk-... usa gpt-5-mini | sk-ant-... usa Claude Opus 4.8 | vacío usa el modelo por defecto",
-        ),
-    ],
-)
+        )
+        with gr.Row():
+            key_box = gr.Textbox(
+                value="",
+                type="password",
+                label="API key (opcional — OpenAI o Anthropic)",
+                placeholder="sk-... usa gpt-5-mini | sk-ant-... usa Claude Opus 4.8",
+                scale=4,
+            )
+            guardar_btn = gr.Button("💾 Guardar clave", scale=1)
+            borrar_btn = gr.Button("🗑️ Borrar", scale=1)
+        clave_estado = gr.Markdown("🔓 Sin clave guardada — se usa el modelo por defecto del servidor.")
+
+    guardar_btn.click(_guardar_clave, inputs=[key_box], outputs=[api_key_state, clave_estado])
+    borrar_btn.click(_borrar_clave, outputs=[api_key_state, key_box, clave_estado])
+
+    gr.ChatInterface(
+        fn=responder_chat,
+        examples=EJEMPLOS,
+        additional_inputs=[backend_dd, api_key_state],
+    )
 
 if __name__ == "__main__":
     demo.launch()
