@@ -22,7 +22,7 @@ Maestría en Inteligencia Artificial Aplicada · Tecnológico de Monterrey.
 
 | Archivo | Descripción |
 |---|---|
-| `Equipo_XX_semanas_7_y_8.ipynb` | **Entregable**: notebook con problema, justificación, implementación, evaluación y conclusiones |
+| `Equipo_03_semanas_7_y_8.ipynb` | **Entregable**: notebook con problema, justificación, implementación, evaluación y conclusiones |
 | `rag_core.py` | Pipeline RAG compartido: carga del corpus, chunking, recuperación semántica y backends LLM |
 | `app.py` | Interfaz de chat (Gradio), desplegada en Hugging Face Spaces |
 | `04_datos_rag/` | Corpus documental del curso (6 `.txt` + 2 `.pdf`) |
