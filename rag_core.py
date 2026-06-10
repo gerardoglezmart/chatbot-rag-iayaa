@@ -7,6 +7,7 @@ baseline comparativo) y generación de respuesta con backends
 intercambiables:
 
 - ``openai``     -> gpt-5-mini vía API de OpenAI (propietario).
+- ``claude``     -> Claude Opus 4.8 vía API de Anthropic (propietario).
 - ``ollama``     -> llama3.2:3b local vía Ollama (código abierto).
 - ``hf``         -> Qwen2.5-7B-Instruct vía Hugging Face Inference API (código abierto).
 - ``extractivo`` -> respaldo local sin LLM (extrae oraciones del top-1).
@@ -49,6 +50,7 @@ EMBEDDING_MODEL_NAME = "paraphrase-multilingual-MiniLM-L12-v2"
 LLM_BACKEND = os.environ.get("LLM_BACKEND", "auto")
 OPENAI_MODEL = os.environ.get("OPENAI_MODEL", "gpt-5-mini")
 OPENAI_REASONING_EFFORT = os.environ.get("OPENAI_REASONING_EFFORT", "low")
+ANTHROPIC_MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-opus-4-8")
 OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "llama3.2:3b")
 OLLAMA_BASE_URL = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434/v1")
 HF_MODEL = os.environ.get("HF_MODEL", "Qwen/Qwen2.5-7B-Instruct")
@@ -358,6 +360,29 @@ def get_openai_llm_callable():
     return llm_openai
 
 
+def get_claude_llm_callable():
+    """Backend propietario alternativo: Claude vía el SDK oficial de Anthropic."""
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        return None
+
+    import anthropic
+
+    client = anthropic.Anthropic(api_key=api_key)
+
+    def llm_claude(prompt: str) -> str:
+        response = client.messages.create(
+            model=ANTHROPIC_MODEL,
+            max_tokens=1024,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return next(
+            (block.text for block in response.content if block.type == "text"), ""
+        ).strip()
+
+    return llm_claude
+
+
 def get_ollama_llm_callable():
     """Modelo open-source local servido por Ollama (API compatible con OpenAI)."""
     import urllib.request
@@ -405,6 +430,7 @@ def get_hf_llm_callable():
 
 _BACKEND_FACTORIES = {
     "openai": get_openai_llm_callable,
+    "claude": get_claude_llm_callable,
     "hf": get_hf_llm_callable,
     "ollama": get_ollama_llm_callable,
 }
@@ -419,7 +445,7 @@ def get_llm_callable(backend: str = LLM_BACKEND) -> tuple:
     if backend in _BACKEND_FACTORIES:
         return _BACKEND_FACTORIES[backend](), backend
 
-    for name in ("openai", "hf", "ollama"):  # orden de preferencia en modo auto
+    for name in ("openai", "claude", "hf", "ollama"):  # orden de preferencia en modo auto
         llm = _BACKEND_FACTORIES[name]()
         if llm is not None:
             return llm, name

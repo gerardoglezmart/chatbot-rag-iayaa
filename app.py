@@ -16,6 +16,7 @@ TOP_K = int(os.environ.get("RAG_TOP_K", rag_core.DEFAULT_TOP_K))
 BACKEND_CHOICES = {
     "Automático (primero disponible)": "auto",
     "OpenAI gpt-5-mini (propietario)": "openai",
+    "Claude Opus 4.8 — Anthropic (propietario)": "claude",
     "Open-source en la nube — Qwen2.5-7B vía HF": "hf",
     "Open-source local — llama3.2:3b vía Ollama": "ollama",
     "Extractivo local (sin LLM)": "extractivo",

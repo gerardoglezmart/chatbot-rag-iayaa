@@ -36,6 +36,7 @@ Backends de generación intercambiables (variable `LLM_BACKEND` o selector en la
 | Backend | Modelo | Tipo |
 |---|---|---|
 | `openai` | `gpt-5-mini` | Propietario (API de OpenAI) |
+| `claude` | `claude-opus-4-8` | Propietario (API de Anthropic) |
 | `hf` | `Qwen/Qwen2.5-7B-Instruct` | **Código abierto** (HF Inference API) |
 | `ollama` | `llama3.2:3b` | **Código abierto** (local, CPU) |
 | `extractivo` | — | Respaldo local sin LLM |
