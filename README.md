@@ -29,13 +29,7 @@ Maestría en Inteligencia Artificial Aplicada · Tecnológico de Monterrey.
 | `requirements.txt` | Dependencias del proyecto |
 
 ## Arquitectura
-
-```
-corpus (.txt/.pdf) → limpieza → chunking (900/150)
-   → embeddings multilingües (sentence-transformers MiniLM-L12-v2)
-   → similitud coseno top-k → prompt con contexto y citas
-   → LLM (intercambiable) → respuesta en español + fuentes
-```
+<img width="2318" height="3844" alt="image" src="https://github.com/user-attachments/assets/47d6a826-7166-43ac-b27c-5938f61e168c" />
 
 Backends de generación intercambiables (variable `LLM_BACKEND` o selector en la interfaz):
 
