@@ -21,7 +21,11 @@ BACKEND_CHOICES = {
     "Extractivo local (sin LLM)": "extractivo",
 }
 
-EJEMPLOS = [item["pregunta"] for item in rag_core.BATERIA_PREGUNTAS]
+# Con additional_inputs, cada ejemplo debe ser [mensaje, valor_del_dropdown]
+EJEMPLOS = [
+    [item["pregunta"], "Automático (primero disponible)"]
+    for item in rag_core.BATERIA_PREGUNTAS
+]
 
 print("Construyendo índice semántico del corpus...")
 rag_core.build_index()
