@@ -21,9 +21,9 @@ BACKEND_CHOICES = {
     "Extractivo local (sin LLM)": "extractivo",
 }
 
-# Con additional_inputs, cada ejemplo debe ser [mensaje, valor_del_dropdown]
+# Con additional_inputs, cada ejemplo debe ser [mensaje, dropdown, api_key]
 EJEMPLOS = [
-    [item["pregunta"], "Automático (primero disponible)"]
+    [item["pregunta"], "Automático (primero disponible)", ""]
     for item in rag_core.BATERIA_PREGUNTAS
 ]
 
@@ -44,7 +44,29 @@ def _turnos_usuario(historial) -> list[str]:
     return turnos
 
 
-def responder_chat(mensaje: str, historial, backend_label: str) -> str:
+def _openai_callable_con_clave(api_key: str):
+    """Backend OpenAI efímero con la clave que el usuario pegó en la interfaz.
+
+    La clave solo vive en memoria durante esta petición: no se guarda,
+    no se escribe a disco y no aparece en logs.
+    """
+    from openai import OpenAI
+
+    client = OpenAI(api_key=api_key)
+
+    def llm_openai(prompt: str) -> str:
+        response = client.responses.create(
+            model=rag_core.OPENAI_MODEL,
+            input=prompt,
+            reasoning={"effort": rag_core.OPENAI_REASONING_EFFORT},
+            store=False,
+        )
+        return response.output_text.strip()
+
+    return llm_openai
+
+
+def responder_chat(mensaje: str, historial, backend_label: str, api_key_usuario: str = "") -> str:
     backend = BACKEND_CHOICES.get(backend_label, "auto")
 
     # Memoria conversacional ligera: las preguntas cortas suelen ser seguimientos
@@ -61,7 +83,12 @@ def responder_chat(mensaje: str, historial, backend_label: str) -> str:
         )
 
     contexto_df = rag_core.recuperar_contexto(consulta_retrieval, k=TOP_K)
-    llm_callable, backend_usado = rag_core.get_llm_callable(backend)
+
+    api_key_usuario = (api_key_usuario or "").strip()
+    if api_key_usuario:
+        llm_callable, backend_usado = _openai_callable_con_clave(api_key_usuario), "openai (clave del usuario)"
+    else:
+        llm_callable, backend_usado = rag_core.get_llm_callable(backend)
     generacion = rag_core.generar_respuesta(pregunta_llm, contexto_df, llm_callable=llm_callable)
     resultado = {
         "respuesta": generacion["respuesta"],
@@ -98,7 +125,13 @@ demo = gr.ChatInterface(
             choices=list(BACKEND_CHOICES.keys()),
             value="Automático (primero disponible)",
             label="Modelo generativo",
-        )
+        ),
+        gr.Textbox(
+            value="",
+            type="password",
+            label="OPENAI_API_KEY (opcional)",
+            placeholder="Pega tu clave para responder con gpt-5-mini; vacío usa el modelo por defecto",
+        ),
     ],
 )
 
