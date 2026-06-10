@@ -32,9 +32,43 @@ rag_core.build_index()
 print("Índice listo.")
 
 
+def _turnos_usuario(historial) -> list[str]:
+    """Extrae los mensajes previos del usuario (soporta formato dict y tuplas)."""
+    turnos = []
+    for m in historial or []:
+        if isinstance(m, dict):
+            if m.get("role") == "user" and isinstance(m.get("content"), str):
+                turnos.append(m["content"])
+        elif isinstance(m, (list, tuple)) and m and isinstance(m[0], str):
+            turnos.append(m[0])
+    return turnos
+
+
 def responder_chat(mensaje: str, historial, backend_label: str) -> str:
     backend = BACKEND_CHOICES.get(backend_label, "auto")
-    resultado = rag_core.chatbot_rag(mensaje, k=TOP_K, backend=backend)
+
+    # Memoria conversacional ligera: las preguntas cortas suelen ser seguimientos
+    # ("dame una definición más corta"), así que el retrieval se enriquece con la
+    # pregunta anterior y el LLM recibe el hilo para responder en contexto.
+    previas = _turnos_usuario(historial)
+    consulta_retrieval = mensaje
+    pregunta_llm = mensaje
+    if previas and len(mensaje.split()) < 12:
+        consulta_retrieval = f"{previas[-1]} {mensaje}"
+        pregunta_llm = (
+            f"{mensaje}\n(Nota: es una pregunta de seguimiento; la pregunta anterior "
+            f"del usuario fue: '{previas[-1]}'. Responde la nueva petición en ese contexto.)"
+        )
+
+    contexto_df = rag_core.recuperar_contexto(consulta_retrieval, k=TOP_K)
+    llm_callable, backend_usado = rag_core.get_llm_callable(backend)
+    generacion = rag_core.generar_respuesta(pregunta_llm, contexto_df, llm_callable=llm_callable)
+    resultado = {
+        "respuesta": generacion["respuesta"],
+        "modo_generacion": backend_usado if generacion["modo_generacion"] == "llm" else generacion["modo_generacion"],
+        "error_generacion": generacion["error_generacion"],
+        "fuentes": contexto_df[["chunk_id", "source", "tema", "score_similitud"]].copy(),
+    }
 
     fuentes = resultado["fuentes"].drop_duplicates("source")
     lista_fuentes = "\n".join(
