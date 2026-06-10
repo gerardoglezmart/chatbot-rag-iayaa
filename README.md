@@ -18,6 +18,17 @@ y Aprendizaje Automático (IAyAA)**, construido con una arquitectura
 Actividad 5 (Semanas 7 y 8) · Procesamiento de Lenguaje Natural ·
 Maestría en Inteligencia Artificial Aplicada · Tecnológico de Monterrey.
 
+## Equipo 3
+
+| Integrante | Matrícula |
+|---|---|
+| José Emiliano Riosmena Castañón | A01704245 |
+| Sofía Donlucas Bañuelos | A01655565 |
+| Sebastián Estrada García | A00805402 |
+| Gerardo González Martínez | A01840096 |
+
+🚀 **Demo en línea:** https://huggingface.co/spaces/GerardoTec/chatbot-rag-iayaa
+
 ## Estructura del repositorio
 
 | Archivo | Descripción |

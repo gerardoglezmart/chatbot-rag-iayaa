@@ -24,6 +24,13 @@ BACKEND_CHOICES = {
 
 EJEMPLOS = [[item["pregunta"]] for item in rag_core.BATERIA_PREGUNTAS]
 
+EQUIPO = [
+    "José Emiliano Riosmena Castañón · A01704245",
+    "Sofía Donlucas Bañuelos · A01655565",
+    "Sebastián Estrada García · A00805402",
+    "Gerardo González Martínez · A01840096",
+]
+
 print("Construyendo índice semántico del corpus...")
 rag_core.build_index()
 print("Índice listo.")
@@ -144,19 +151,61 @@ def _borrar_clave():
     return "", "", "🔓 Clave borrada — se usa el modelo por defecto del servidor."
 
 
-with gr.Blocks(title="Chatbot académico IAyAA — RAG + LLM") as demo:
-    gr.Markdown(
-        "# 🤖 Chatbot académico IAyAA — RAG + LLM\n"
-        "Pregunta sobre los temas del curso *Inteligencia Artificial y Aprendizaje Automático*: "
-        "gradiente descendente, regresión logística, entropía y ganancia de información, "
-        "sesgo-varianza, SVM y métricas de clasificación. Las respuestas se generan con base "
-        "en el material del curso y citan sus fuentes.\n\n"
-        "*Maestría en Inteligencia Artificial Aplicada — Tec de Monterrey — Actividad 5 (Semanas 7 y 8).*"
+TEMA = gr.themes.Soft(
+    primary_hue="teal",
+    secondary_hue="slate",
+    neutral_hue="slate",
+    font=[gr.themes.GoogleFont("Outfit"), "ui-sans-serif", "system-ui", "sans-serif"],
+    font_mono=[gr.themes.GoogleFont("JetBrains Mono"), "ui-monospace", "monospace"],
+)
+
+CSS = """
+.hero {
+    background: linear-gradient(120deg, #0f766e 0%, #115e59 55%, #1e293b 100%);
+    border-radius: 18px;
+    padding: 28px 32px 22px;
+    color: #f0fdfa;
+    margin-bottom: 6px;
+}
+.hero h1 { color: #ffffff !important; margin: 0 0 6px; font-weight: 700; letter-spacing: -0.5px; }
+.hero p { color: #ccfbf1 !important; margin: 4px 0; }
+.hero .badges { margin-top: 12px; }
+.hero .badge {
+    display: inline-block; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 999px; padding: 3px 12px; margin: 2px 6px 2px 0; font-size: 0.8em; color: #f0fdfa;
+}
+.equipo {
+    text-align: center; color: var(--body-text-color-subdued); font-size: 0.85em;
+    margin-top: 10px; line-height: 1.7;
+}
+.equipo .nombre {
+    display: inline-block; background: var(--background-fill-secondary);
+    border: 1px solid var(--border-color-primary); border-radius: 999px;
+    padding: 2px 12px; margin: 2px 4px;
+}
+.ejemplos-titulo { margin: 4px 0 0; font-weight: 600; color: var(--body-text-color-subdued); }
+"""
+
+with gr.Blocks(title="Chatbot académico IAyAA — RAG + LLM", theme=TEMA, css=CSS) as demo:
+    gr.HTML(
+        """
+        <div class="hero">
+          <h1>Chatbot académico IAyAA</h1>
+          <p>Asistente RAG + LLM sobre el material del curso <em>Inteligencia Artificial y Aprendizaje
+          Automático</em>. Cada respuesta cita sus fuentes del corpus.</p>
+          <div class="badges">
+            <span class="badge">Retrieval semántico</span>
+            <span class="badge">4 modelos intercambiables</span>
+            <span class="badge">Fuentes verificables</span>
+            <span class="badge">Tec de Monterrey · MNA · Equipo 3</span>
+          </div>
+        </div>
+        """
     )
 
     api_key_state = gr.State("")
 
-    with gr.Accordion("⚙️ Configuración del modelo", open=True):
+    with gr.Accordion("⚙️ Configuración del modelo", open=False):
         backend_dd = gr.Dropdown(
             choices=list(BACKEND_CHOICES.keys()),
             value="Automático (primero disponible)",
@@ -177,10 +226,26 @@ with gr.Blocks(title="Chatbot académico IAyAA — RAG + LLM") as demo:
     guardar_btn.click(_guardar_clave, inputs=[key_box], outputs=[api_key_state, clave_estado])
     borrar_btn.click(_borrar_clave, outputs=[api_key_state, key_box, clave_estado])
 
-    gr.ChatInterface(
+    chat = gr.ChatInterface(
         fn=responder_chat,
-        examples=EJEMPLOS,
         additional_inputs=[backend_dd, api_key_state],
+    )
+
+    # Ejemplos persistentes: siempre visibles debajo del chat, aun con la
+    # conversación iniciada (los chips nativos de ChatInterface desaparecen
+    # tras el primer mensaje).
+    gr.Markdown("💡 **Prueba con una de estas preguntas:**", elem_classes=["ejemplos-titulo"])
+    for fila in (EJEMPLOS[:3], EJEMPLOS[3:]):
+        with gr.Row():
+            for (pregunta,) in fila:
+                btn = gr.Button(pregunta, size="sm")
+                btn.click(lambda p=pregunta: p, outputs=chat.textbox)
+
+    gr.HTML(
+        "<div class='equipo'>Equipo 3 — Maestría en Inteligencia Artificial Aplicada · "
+        "Tecnológico de Monterrey · Actividad 5 (Semanas 7 y 8)<br>"
+        + "".join(f"<span class='nombre'>{m}</span>" for m in EQUIPO)
+        + "</div>"
     )
 
 if __name__ == "__main__":
