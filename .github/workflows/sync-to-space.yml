@@ -25,15 +25,25 @@ jobs:
           pip install -q huggingface_hub
           python - <<'EOF'
           import os
+          import time
           from huggingface_hub import HfApi
 
           api = HfApi(token=os.environ["HF_TOKEN"])
-          api.upload_folder(
-              folder_path=".",
-              repo_id=os.environ["HF_SPACE_ID"],
-              repo_type="space",
-              commit_message="Sync desde GitHub Actions",
-              ignore_patterns=[".git*", ".github*", "*.ipynb", "__pycache__*"],
-          )
-          print("Space sincronizado")
+          for intento in range(1, 4):
+              try:
+                  api.upload_folder(
+                      folder_path=".",
+                      repo_id=os.environ["HF_SPACE_ID"],
+                      repo_type="space",
+                      commit_message="Sync desde GitHub Actions",
+                      ignore_patterns=[".git*", ".github*", "*.ipynb", "__pycache__*"],
+                  )
+                  print("Space sincronizado")
+                  break
+              except Exception as exc:
+                  # La API del Hub a veces responde errores transitorios (no-JSON/5xx)
+                  if intento == 3:
+                      raise
+                  print(f"Intento {intento} falló ({type(exc).__name__}: {exc}); reintentando...")
+                  time.sleep(20 * intento)
           EOF
