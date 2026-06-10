@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.env
+.venv/
+04_datos_rag.zip
+*.pdf
+!04_datos_rag/*.pdf
+# Versiones previas / material de la actividad (no forman parte del entregable)
+MNA_NLP_actividad_chatbot_LLM_RAG.ipynb
+MNA_NLP_actividad_chatbot_LLM_RAG_equipo.ipynb
+.gradio/
+flagged/
