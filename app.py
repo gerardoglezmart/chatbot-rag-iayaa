@@ -67,6 +67,32 @@ def _openai_callable_con_clave(api_key: str):
     return llm_openai
 
 
+def _claude_callable_con_clave(api_key: str):
+    """Backend Claude efímero con la clave que el usuario pegó en la interfaz."""
+    import anthropic
+
+    client = anthropic.Anthropic(api_key=api_key)
+
+    def llm_claude(prompt: str) -> str:
+        response = client.messages.create(
+            model=rag_core.ANTHROPIC_MODEL,
+            max_tokens=1024,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return next(
+            (block.text for block in response.content if block.type == "text"), ""
+        ).strip()
+
+    return llm_claude
+
+
+def _callable_segun_clave(api_key: str):
+    """Detecta el proveedor por el prefijo de la clave pegada en la interfaz."""
+    if api_key.startswith("sk-ant-"):
+        return _claude_callable_con_clave(api_key), "claude (clave del usuario)"
+    return _openai_callable_con_clave(api_key), "openai (clave del usuario)"
+
+
 def responder_chat(mensaje: str, historial, backend_label: str, api_key_usuario: str = "") -> str:
     backend = BACKEND_CHOICES.get(backend_label, "auto")
 
@@ -87,7 +113,7 @@ def responder_chat(mensaje: str, historial, backend_label: str, api_key_usuario:
 
     api_key_usuario = (api_key_usuario or "").strip()
     if api_key_usuario:
-        llm_callable, backend_usado = _openai_callable_con_clave(api_key_usuario), "openai (clave del usuario)"
+        llm_callable, backend_usado = _callable_segun_clave(api_key_usuario)
     else:
         llm_callable, backend_usado = rag_core.get_llm_callable(backend)
     generacion = rag_core.generar_respuesta(pregunta_llm, contexto_df, llm_callable=llm_callable)
@@ -130,8 +156,8 @@ demo = gr.ChatInterface(
         gr.Textbox(
             value="",
             type="password",
-            label="OPENAI_API_KEY (opcional)",
-            placeholder="Pega tu clave para responder con gpt-5-mini; vacío usa el modelo por defecto",
+            label="API key (opcional — OpenAI o Anthropic)",
+            placeholder="sk-... usa gpt-5-mini | sk-ant-... usa Claude Opus 4.8 | vacío usa el modelo por defecto",
         ),
     ],
 )
