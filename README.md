@@ -20,12 +20,12 @@ Maestría en Inteligencia Artificial Aplicada · Tecnológico de Monterrey.
 
 ## Equipo 3
 
-| Integrante | Matrícula |
-|---|---|
-| José Emiliano Riosmena Castañón | A01704245 |
-| Sofía Donlucas Bañuelos | A01655565 |
-| Sebastián Estrada García | A00805402 |
-| Gerardo González Martínez | A01840096 |
+| Integrante | Matrícula | Correo |
+|---|---|---|
+| José Emiliano Riosmena Castañón | A01704245 | A01704245@tec.mx |
+| Sofía Donlucas Bañuelos | A01655565 | A01655565@tec.mx |
+| Sebastián Estrada García | A00805402 | A00805402@tec.mx |
+| Gerardo González Martínez | A01840096 | A01840096@tec.mx |
 
 **Demo en línea:** https://huggingface.co/spaces/GerardoTec/chatbot-rag-iayaa
 
