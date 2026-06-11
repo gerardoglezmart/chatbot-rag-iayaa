@@ -27,7 +27,7 @@ Maestría en Inteligencia Artificial Aplicada · Tecnológico de Monterrey.
 | Sebastián Estrada García | A00805402 |
 | Gerardo González Martínez | A01840096 |
 
-🚀 **Demo en línea:** https://huggingface.co/spaces/GerardoTec/chatbot-rag-iayaa
+**Demo en línea:** https://huggingface.co/spaces/GerardoTec/chatbot-rag-iayaa
 
 ## Estructura del repositorio
 
