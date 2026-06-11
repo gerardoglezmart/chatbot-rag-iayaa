@@ -39,8 +39,13 @@ Maestría en Inteligencia Artificial Aplicada · Tecnológico de Monterrey.
 | `04_datos_rag/` | Corpus documental del curso (6 `.txt` + 2 `.pdf`) |
 | `requirements.txt` | Dependencias del proyecto |
 
-## Arquitectura
-<img width="2318" height="3844" alt="image" src="https://github.com/user-attachments/assets/47d6a826-7166-43ac-b27c-5938f61e168c" />
+## Arquitectura: Flujo del sistema (RAG + LLM): 
+<img width="1887" height="3624" alt="image" src="https://github.com/user-attachments/assets/40f5e615-8e40-43bd-91c8-e4fd380495d6" />
+
+## Flujo de despliegue continuo:
+
+<img width="4505" height="283" alt="image" src="https://github.com/user-attachments/assets/a749460b-7fc9-4b64-92e9-b1dc57a3416f" />
+
 
 Backends de generación intercambiables (variable `LLM_BACKEND` o selector en la interfaz):
 
