@@ -47,7 +47,7 @@ Maestría en Inteligencia Artificial Aplicada · Tecnológico de Monterrey.
 <img width="4505" height="283" alt="image" src="https://github.com/user-attachments/assets/a749460b-7fc9-4b64-92e9-b1dc57a3416f" />
 
 
-Backends de generación intercambiables (variable `LLM_BACKEND` o selector en la interfaz):
+## Backends de generación intercambiables (variable `LLM_BACKEND` o selector en la interfaz):
 
 | Backend | Modelo | Tipo |
 |---|---|---|
